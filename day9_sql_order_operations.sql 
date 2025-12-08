@@ -1,0 +1,35 @@
+SELECT
+    p.p_type AS product_category,
+    SUM(l.l_extendedprice) AS total_revenue
+FROM lineitem l
+JOIN part p ON l.l_partkey = p.p_partkey
+GROUP BY p.p_type
+HAVING SUM(l.l_extendedprice) > 10000000;
+
+
+
+WITH category_revenue AS (
+    SELECT
+        p.p_type AS product_category,
+        SUM(l.l_extendedprice) AS total_revenue
+    FROM lineitem l
+    JOIN part p ON l.l_partkey = p.p_partkey
+    GROUP BY p.p_type
+)
+SELECT
+    product_category,
+    total_revenue
+FROM category_revenue
+WHERE total_revenue > 10000000;
+
+
+
+
+-- This will FAIL - screenshot the error too
+SELECT
+    p.p_type AS product_category,
+    SUM(l.l_extendedprice) AS total_revenue
+FROM lineitem l
+JOIN part p ON l.l_partkey = p.p_partkey
+WHERE total_revenue > 10000000
+GROUP BY p.p_type;
