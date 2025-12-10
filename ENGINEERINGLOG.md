@@ -19,3 +19,45 @@ git add day8_xray_vision.md ENGINEERINGLOG.md screenshots/
 **Screenshots:** Posted to wins channel - "I respect the Order."
 
 EOF
+
+## Day 10 – Spaghetti Surgeon (CTE Refactor)
+
+**What I tried to do**
+- Refactor a legacy nested query that finds the top 3 products by revenue for high-spending, active users into readable CTEs.
+
+**Clean CTE query (Snowflake)**
+
+WITH active_whales AS (
+SELECT
+ID AS USER_ID
+FROM USERS
+WHERE TOTAL_SPEND > 1000
+AND STATUS = 'active'
+),
+product_revenue AS (
+SELECT
+P.NAME AS PRODUCT_NAME,
+SUM(O.AMOUNT) AS TOTAL_REVENUE
+FROM ORDERS O
+JOIN PRODUCTS P
+ON O.PRODUCT_ID = P.ID
+WHERE O.USER_ID IN (
+SELECT USER_ID
+FROM active_whales
+)
+GROUP BY
+P.NAME
+)
+SELECT
+PRODUCT_NAME,
+TOTAL_REVENUE
+FROM product_revenue
+ORDER BY
+TOTAL_REVENUE DESC
+LIMIT 3;
+
+
+
+**Why I named the CTEs this way**
+- `active_whales`: captures users who spend more than 1000 and have `STATUS = 'active'`, i.e., high-value “whale” customers.
+- `product_revenue`: aggregates total revenue per product for only those active whales so the final SELECT can stay clean and focused on ranking products.
