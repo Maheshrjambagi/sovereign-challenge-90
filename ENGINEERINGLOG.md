@@ -61,3 +61,18 @@ LIMIT 3;
 **Why I named the CTEs this way**
 - `active_whales`: captures users who spend more than 1000 and have `STATUS = 'active'`, i.e., high-value “whale” customers.
 - `product_revenue`: aggregates total revenue per product for only those active whales so the final SELECT can stay clean and focused on ranking products.
+
+
+## Day 11 – Window Functions (Stock Returns)
+
+- What I tried to do  
+  - Created a `stockprices` table in Snowflake with `date`, `ticker`, and `closeprice` for AAPL and TSLA over 5 days.  
+  - Wrote a single SQL query using a window function to calculate the daily return for each stock and then identify the best day based on that return.
+
+- How I solved it (SQL approach)  
+  - Used `LAG(closeprice, 1) OVER (PARTITION BY ticker ORDER BY date)` to look at the previous day's close for the same ticker and compute the daily return percentage from it.  
+  - Wrapped the logic in a CTE so the final `SELECT` is clean and only reads pre-calculated daily returns, and then added a `RANK()` window function (partitioned by ticker, ordered by daily return descending) to find the best day per stock.
+
+- Why I used PARTITION BY ticker  
+  - `PARTITION BY ticker` forces the window function to reset for each stock symbol so the `LAG` for AAPL only looks at previous AAPL rows, and the `LAG` for TSLA only looks at previous TSLA rows.  
+  - Without this partitioning, the window could pull the previous row from a different ticker, which would corrupt the daily return calculation by mixing prices from different companies.
